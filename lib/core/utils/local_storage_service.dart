@@ -1,156 +1,154 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import '../../data/models/user_profile.dart';
-import '../constants/app_config.dart';
+import '../../data/models/user_profile.dart' as local_user;
 
 class LocalStorageService {
   static SharedPreferences? _preferences;
 
-  static Future<void> init() async {
+  ///
+  /// List of const keys
+  ///
+  static const String onboardingCountKey = 'onBoardingCount';
+  static const String notificationsCountKey = 'notificationsCount';
+  static const String accessTokenKey = 'accessToken';
+  static const String refreshTokenKey = 'refreshToken';
+  static const String accessTokenExpiryKey = 'accessTokenExpiry';
+  static const String refreshTokenExpiryKey = 'refreshTokenExpiry';
+  static const String userDataKey = 'userData';
+  static const String roleKey = 'role';
+  static const String activeAddressIdKey = 'activeAddressId';
+  static const String localeKey = 'locale';
+  //getNotificationsStatus
+  static const String notificationsStatusKey = 'notificationsStatus';
+
+  ///
+  /// Setters and getters
+  ///
+  ///
+  dynamic get getLocale => _getFromDisk(localeKey);
+  set setLocale(String locale) => _saveToDisk(localeKey, locale);
+
+  int get onBoardingPageCount => _getFromDisk(onboardingCountKey) ?? 0;
+  set onBoardingPageCount(int count) => _saveToDisk(onboardingCountKey, count);
+
+  int get getNotificationsCount => _getFromDisk(notificationsCountKey) ?? 0;
+
+  set setNotificationsCount(int count) =>
+      _saveToDisk(notificationsCountKey, count);
+
+  int get activeAddressId => _getFromDisk(activeAddressIdKey) ?? 0;
+  set activeAddressId(int id) => _saveToDisk(activeAddressIdKey, id);
+
+  dynamic get accessToken => _getFromDisk(accessTokenKey);
+  set accessToken(dynamic token) => _saveToDisk(accessTokenKey, token);
+
+  dynamic get refreshToken => _getFromDisk(refreshTokenKey);
+  set refreshToken(dynamic token) => _saveToDisk(refreshTokenKey, token);
+
+  String? get accessTokenExpiry => _getFromDisk(accessTokenExpiryKey);
+  set accessTokenExpiry(String? expiry) =>
+      _saveToDisk(accessTokenExpiryKey, expiry);
+
+  String? get refreshTokenExpiry => _getFromDisk(refreshTokenExpiryKey);
+  set refreshTokenExpiry(String? expiry) =>
+      _saveToDisk(refreshTokenExpiryKey, expiry);
+
+  String? get role => _getFromDisk(roleKey);
+  set role(String? roleValue) => _saveToDisk(roleKey, roleValue);
+
+  local_user.UserProfile? get userData {
+    final jsonString = _getFromDisk(userDataKey);
+    if (jsonString == null) return null;
+    try {
+      return local_user.UserProfile.fromJson(jsonDecode(jsonString));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  set userData(local_user.UserProfile? profile) {
+    if (profile == null) {
+      _saveToDisk(userDataKey, null);
+    } else {
+      _saveToDisk(userDataKey, jsonEncode(profile.toJson()));
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserData() async {
+    final jsonString = _getFromDisk(userDataKey);
+    if (jsonString == null) return null;
+    try {
+      return jsonDecode(jsonString);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  ///
+  /// Generic methods for getting and setting values
+  ///
+  String? getString(String key) => _getFromDisk(key);
+  Future<void> setString(String key, String value) async {
+    _saveToDisk(key, value);
+  }
+
+  /// Remove a value from storage
+  Future<void> remove(String key) async {
+    await _preferences?.remove(key);
+  }
+
+  /// Clear tokens
+  Future<void> clearTokens() async {
+    await _preferences?.remove(accessTokenKey);
+    await _preferences?.remove(refreshTokenKey);
+    await _preferences?.remove(accessTokenExpiryKey);
+    await _preferences?.remove(refreshTokenExpiryKey);
+  }
+
+  /// Clear user data
+  Future<void> clearUserData() async {
+    // Remove all user-related data except app settings
+    await _preferences?.remove('user');
+    await _preferences?.remove('userKey');
+    await _preferences?.remove(userDataKey);
+    await _preferences?.remove(roleKey);
+    await clearTokens();
+  }
+
+  ///
+  ///initializing instance
+  ///
+  Future<void> init() async {
     _preferences = await SharedPreferences.getInstance();
   }
 
-  static SharedPreferences get preferences {
-    if (_preferences == null) {
-      throw Exception('LocalStorageService not initialized');
+  dynamic _getFromDisk(String key) {
+    if (_preferences == null) return null;
+    var value = _preferences!.get(key);
+    return value;
+  }
+
+  void _saveToDisk<T>(String key, T? content) {
+    if (_preferences == null) return;
+
+    if (content is String) {
+      _preferences!.setString(key, content);
     }
-    return _preferences!;
-  }
-
-  // Authentication token management
-  String? get accessToken => getString(AppConfig.accessTokenKey);
-  set accessToken(String? value) => value != null
-      ? setString(AppConfig.accessTokenKey, value)
-      : remove(AppConfig.accessTokenKey);
-
-  String? get refreshToken => getString(AppConfig.refreshTokenKey);
-  set refreshToken(String? value) => value != null
-      ? setString(AppConfig.refreshTokenKey, value)
-      : remove(AppConfig.refreshTokenKey);
-
-  String? get accessTokenExpiry =>
-      getString('${AppConfig.accessTokenKey}_expiry');
-  set accessTokenExpiry(String? value) => value != null
-      ? setString('${AppConfig.accessTokenKey}_expiry', value)
-      : remove('${AppConfig.accessTokenKey}_expiry');
-
-  String? get refreshTokenExpiry =>
-      getString('${AppConfig.refreshTokenKey}_expiry');
-  set refreshTokenExpiry(String? value) => value != null
-      ? setString('${AppConfig.refreshTokenKey}_expiry', value)
-      : remove('${AppConfig.refreshTokenKey}_expiry');
-
-  String? get role => getString('user_role');
-  set role(String? value) =>
-      value != null ? setString('user_role', value) : remove('user_role');
-
-  // User data management
-  UserProfile? get userData {
-    final userDataString = getString(AppConfig.userDataKey);
-    if (userDataString != null) {
-      try {
-        final Map<String, dynamic> userMap = json.decode(userDataString);
-        return UserProfile.fromJson(userMap);
-      } catch (e) {
-        return null;
-      }
+    if (content is bool) {
+      _preferences!.setBool(key, content);
     }
-    return null;
-  }
-
-  set userData(UserProfile? user) {
-    if (user != null) {
-      setString(AppConfig.userDataKey, json.encode(user.toJson()));
-    } else {
-      remove(AppConfig.userDataKey);
+    if (content is int) {
+      _preferences!.setInt(key, content);
     }
-  }
-
-  // Legacy methods for compatibility
-  Future<String?> getAccessToken() async => accessToken;
-  Future<String?> getRefreshToken() async => refreshToken;
-  Future<Map<String, dynamic>?> getUserData() async {
-    final user = userData;
-    return user?.toJson();
-  }
-
-  Future<void> saveAccessToken(String token) async {
-    accessToken = token;
-  }
-
-  Future<void> saveRefreshToken(String token) async {
-    refreshToken = token;
-  }
-
-  Future<void> saveUserData(Map<String, dynamic> data) async {
-    try {
-      userData = UserProfile.fromJson(data);
-    } catch (e) {
-      // Fallback to storing as JSON string
-      setString(AppConfig.userDataKey, json.encode(data));
+    if (content is double) {
+      _preferences!.setDouble(key, content);
     }
-  }
+    if (content is List<String>) {
+      _preferences!.setStringList(key, content);
+    }
 
-  Future<void> clearTokens() async {
-    accessToken = null;
-    refreshToken = null;
-    accessTokenExpiry = null;
-    refreshTokenExpiry = null;
-  }
-
-  Future<void> clearUserData() async {
-    userData = null;
-    role = null;
-  }
-
-  // String operations
-  Future<bool> setString(String key, String value) async {
-    return await preferences.setString(key, value);
-  }
-
-  String? getString(String key) {
-    return preferences.getString(key);
-  }
-
-  // Int operations
-  Future<bool> setInt(String key, int value) async {
-    return await preferences.setInt(key, value);
-  }
-
-  int? getInt(String key) {
-    return preferences.getInt(key);
-  }
-
-  // Bool operations
-  Future<bool> setBool(String key, bool value) async {
-    return await preferences.setBool(key, value);
-  }
-
-  bool? getBool(String key) {
-    return preferences.getBool(key);
-  }
-
-  // Double operations
-  Future<bool> setDouble(String key, double value) async {
-    return await preferences.setDouble(key, value);
-  }
-
-  double? getDouble(String key) {
-    return preferences.getDouble(key);
-  }
-
-  // Remove operations
-  Future<bool> remove(String key) async {
-    return await preferences.remove(key);
-  }
-
-  // Clear all
-  Future<bool> clear() async {
-    return await preferences.clear();
-  }
-
-  // Check if key exists
-  bool containsKey(String key) {
-    return preferences.containsKey(key);
+    if (content == null) {
+      _preferences!.remove(key);
+    }
   }
 }

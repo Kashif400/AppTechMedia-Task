@@ -1,21 +1,24 @@
 import 'package:clean_code_architecture_app/generated/colors.gen.dart';
+import 'package:clean_code_architecture_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../generated/fonts.gen.dart';
 import '../../../../widget/custom_button.dart';
+import '../widgets/language_selector.dart';
 
 class OnboardingView extends StatelessWidget {
   const OnboardingView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final localization = S.of(context);
+    final localization = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: ColorName.background,
       appBar: AppBar(
         backgroundColor: ColorName.background,
         elevation: 0,
-        // actions: [LanguageSelector(), 24.horizontalSpace],
+        actions: [const LanguageSelector(), 24.horizontalSpace],
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
@@ -34,7 +37,7 @@ class OnboardingView extends StatelessWidget {
                     TextSpan(
                       text: 'Ashtra\n',
                       style: TextStyle(
-                        fontFamily: 'Roboto',
+                        fontFamily: FontFamily.roboto,
                         fontSize: 33.sp,
                         color: const Color(0xFF9A9A9A),
                         fontWeight: FontWeight.w800,
@@ -44,7 +47,7 @@ class OnboardingView extends StatelessWidget {
                     TextSpan(
                       text: ' Ascend',
                       style: TextStyle(
-                        fontFamily: 'Roboto',
+                        fontFamily: FontFamily.roboto,
                         fontSize: 33.sp,
                         height: 1,
                         color: ColorName.primary,

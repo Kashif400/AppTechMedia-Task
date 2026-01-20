@@ -2,6 +2,7 @@
 <resources>
     <!-- Primary Colors -->
     <color name="primary">#006AFF</color>
+    <color name="primary_light">#F0F6FF</color>
     <color name="accent">#03DAC6</color>
     
     <!-- Outline Colors -->

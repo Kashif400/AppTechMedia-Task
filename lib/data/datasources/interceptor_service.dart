@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:get/get.dart' as getX;
+import 'package:get/get.dart' as get_x;
 import 'package:get_it/get_it.dart';
 import '../models/login_response.dart';
 import '../datasources/authentication_service.dart';
@@ -12,8 +12,8 @@ class TokenInterceptor extends Interceptor {
   final _talker = GetIt.instance<TalkerService>();
 
   TokenInterceptor();
-  // ignore: prefer_typing_uninitialized_variables
-  late final requestOptions;
+
+  late final RequestOptions? requestOptions;
 
   @override
   Future onRequest(RequestOptions? options, handler) async {
@@ -100,38 +100,42 @@ class TokenInterceptor extends Interceptor {
 
           // Update the original request with the new token and retry
           final newToken = refreshResponse.data!.accessToken;
-          final newOptions = requestOptions.copyWith(
-            headers: {
-              ...requestOptions.headers,
-              'Authorization': 'Bearer $newToken',
-            },
-          );
 
-          // Create a new dio instance to avoid infinite recursion
-          final dio = Dio();
-          dio.options = newOptions;
-
-          try {
-            final retriedResponse = await dio.request(
-              newOptions.path,
-              options: Options(
-                method: newOptions.method,
-                headers: newOptions.headers,
-                validateStatus: (status) => true, // Accept all status codes
-              ),
-              data: newOptions.data,
-              queryParameters: newOptions.queryParameters,
+          if (requestOptions != null) {
+            final newOptions = requestOptions!.copyWith(
+              headers: {
+                ...requestOptions!.headers,
+                'Authorization': 'Bearer $newToken',
+              },
             );
 
-            _talker.info('✅ Retried request successful');
-            return handler.resolve(retriedResponse);
-          } catch (retryError, stackTrace) {
-            _talker.error(
-              '❌ Failed to retry request after token refresh',
-              stackTrace: stackTrace,
-              message: retryError.toString(),
-            );
-            return handler.next(response);
+            // Create a new dio instance to avoid infinite recursion
+            final dio = Dio();
+            dio.options.baseUrl = newOptions.baseUrl;
+            dio.options.headers = newOptions.headers;
+
+            try {
+              final retriedResponse = await dio.request(
+                newOptions.path,
+                options: Options(
+                  method: newOptions.method,
+                  headers: newOptions.headers,
+                  validateStatus: (status) => true, // Accept all status codes
+                ),
+                data: newOptions.data,
+                queryParameters: newOptions.queryParameters,
+              );
+
+              _talker.info('✅ Retried request successful');
+              return handler.resolve(retriedResponse);
+            } catch (retryError, stackTrace) {
+              _talker.error(
+                '❌ Failed to retry request after token refresh',
+                stackTrace: stackTrace,
+                message: retryError.toString(),
+              );
+              return handler.next(response);
+            }
           }
         } else {
           _talker.error('❌ Token refresh failed');
@@ -174,12 +178,12 @@ class TokenInterceptor extends Interceptor {
       // Only show snackbar if context is available, application is in foreground,
       // and it's not a timeout/connection error
       if (shouldShowSnackbar &&
-          getX.Get.context != null &&
-          getX.Get.isOverlaysOpen) {
-        getX.Get.snackbar(
+          get_x.Get.context != null &&
+          get_x.Get.isOverlaysOpen) {
+        get_x.Get.snackbar(
           'Request Failed',
           err.message ?? "Unknown error",
-          snackPosition: getX.SnackPosition.BOTTOM,
+          snackPosition: get_x.SnackPosition.BOTTOM,
           duration: const Duration(seconds: 3),
         );
       } else {

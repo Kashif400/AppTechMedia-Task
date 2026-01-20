@@ -1,9 +1,10 @@
 import 'package:get_it/get_it.dart';
-import '../../config/routes/app_router.dart';
+import '../routes/app_router.dart';
 import '../utils/local_storage_service.dart';
 import '../utils/talker_service.dart';
 import '../constants/app_config.dart';
 import '../network/dio_client.dart';
+import '../services/localization_service.dart';
 
 // Auth feature imports
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
@@ -31,12 +32,14 @@ Future<void> initializeDependencies({String? environment}) async {
     () => AppConfig.fromString(environment ?? 'prod'),
   );
 
-  // Initialize local storage first
-  await LocalStorageService.init();
+  // Core services - Initialize LocalStorageService
+  final localStorageService = LocalStorageService();
+  await localStorageService.init(); // Initialize SharedPreferences
+  locator.registerLazySingleton<LocalStorageService>(() => localStorageService);
 
-  // Core services
-  locator.registerLazySingleton<LocalStorageService>(
-    () => LocalStorageService(),
+  // Localization Service
+  locator.registerLazySingleton<LocalizationService>(
+    () => LocalizationService(locator<LocalStorageService>()),
   );
 
   locator.registerLazySingleton<AppRouter>(() => AppRouter());

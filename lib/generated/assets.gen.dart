@@ -11,6 +11,16 @@
 
 import 'package:flutter/widgets.dart';
 
+class $AssetsAnimationsGen {
+  const $AssetsAnimationsGen();
+
+  /// File path: assets/animations/card.json
+  String get card => 'assets/animations/card.json';
+
+  /// List of all assets
+  List<String> get values => [card];
+}
+
 class $AssetsLogosGen {
   const $AssetsLogosGen();
 
@@ -25,6 +35,7 @@ class Assets {
   const Assets._();
 
   static const String aEnv = '.env';
+  static const $AssetsAnimationsGen animations = $AssetsAnimationsGen();
   static const $AssetsLogosGen logos = $AssetsLogosGen();
 
   /// List of all assets

@@ -103,7 +103,49 @@ flutter:
     - .env
     - assets/logos/
     - assets/animations/
-    - assets/config/
+
+
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Bold.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
+        - asset: assets/fonts/Poppins-Regular.ttf
+
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Black.ttf
+        - asset: assets/fonts/Inter-Bold.ttf
+        - asset: assets/fonts/Inter-ExtraBold.ttf
+        - asset: assets/fonts/Inter-ExtraLight.ttf
+        - asset: assets/fonts/Inter-Light.ttf
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-SemiBold.ttf
+        - asset: assets/fonts/Inter-Thin.ttf
+
+    - family: Source Sans Pro
+      fonts:
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-Black.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-BlackIt.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-Bold.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-BoldIt.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-ExtraLight.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-ExtraLightIt.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-It.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-Light.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-Regular.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-Semibold.otf
+        - asset: assets/fonts/source-sans-pro/SourceSansPro-SemiboldIt.otf
+
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto/Roboto-Black.ttf
+        - asset: assets/fonts/Roboto/Roboto-Bold.ttf
+        - asset: assets/fonts/Roboto/Roboto-Medium.ttf
+        - asset: assets/fonts/Roboto/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto/Roboto-Thin.ttf
+        - asset: assets/fonts/Roboto/Roboto-Light.ttf
+
 
 # Flutter Launcher Icons configuration
 flutter_launcher_icons:

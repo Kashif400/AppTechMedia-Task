@@ -1,6 +1,9 @@
+import 'package:clean_code_architecture_app/generated/fonts.gen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../generated/colors.gen.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -26,36 +29,52 @@ class _SplashViewState extends State<SplashView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: ColorName.background,
       body: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // App Logo
-            Image.asset(
-              'assets/logos/app_icon.png',
-              width: 150,
-              height: 150,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.flutter_dash, size: 150, color: Colors.white);
-              },
-            ),
-            const SizedBox(height: 30),
-            // App Name or Loading Indicator
-            const Text(
-              'Clean Code Architecture',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Ashtra\n',
+                    style: TextStyle(
+                      fontFamily: FontFamily.roboto,
+                      fontSize: 33.sp,
+                      color: const Color(0xFF9A9A9A),
+                      fontWeight: FontWeight.w800,
+                      height: 0.7,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' Ascend',
+                    style: TextStyle(
+                      fontFamily: FontFamily.roboto,
+                      fontSize: 33.sp,
+                      height: 1,
+                      color: ColorName.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 30),
-            // Loading Indicator
-            const CircularProgressIndicator(color: Colors.white),
+            SizedBox(
+              width: 16.h,
+              height: 16.h,
+              child: const CircularProgressIndicator(
+                color: ColorName.primary,
+                strokeWidth: 3,
+              ),
+            ),
           ],
         ),
       ),
     );
+    ;
   }
 }
