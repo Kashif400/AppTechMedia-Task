@@ -1,0 +1,10 @@
+#include "Generated.xcconfig"
+
+FLUTTER_TARGET=lib/main.dart
+FLUTTER_BUILD_MODE=debug
+FLUTTER_BUILD_NAME=1.0.0
+FLUTTER_BUILD_NUMBER=1
+
+// App Configuration
+PRODUCT_NAME=Ashtra Salon (Test)
+PRODUCT_BUNDLE_IDENTIFIER=com.ashtra.salon.cleancodearchitectureapp.test

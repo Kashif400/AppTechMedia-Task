@@ -1,0 +1,19 @@
+{
+    "@@locale": "en",
+    "appTitle": "Clean Code Architecture",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "welcomeMessage": "Welcome to Clean Code Architecture!",
+    "@welcomeMessage": {
+        "description": "Welcome message displayed on home screen"
+    },
+    "home": "Home",
+    "@home": {
+        "description": "Home screen title"
+    },
+    "loading": "Loading...",
+    "@loading": {
+        "description": "Loading indicator text"
+    }
+}
