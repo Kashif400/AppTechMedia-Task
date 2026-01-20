@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import '../core/utils/local_storage_service.dart';
+import '../core/utils/talker_service.dart';
 import '../core/constants/app_config.dart';
 import '../core/network/dio_client.dart';
 
@@ -14,6 +15,16 @@ import '../features/auth/presentation/bloc/auth_bloc.dart';
 final GetIt serviceLocator = GetIt.instance;
 
 Future<void> initializeDependencies({String? environment}) async {
+  // Initialize Talker Service first for logging
+  final talkerService = TalkerService();
+  talkerService.initialize();
+  serviceLocator.registerLazySingleton<TalkerService>(() => talkerService);
+
+  talkerService.info(
+    '🚀 Initializing dependencies',
+    data: {'environment': environment ?? 'prod'},
+  );
+
   // Register AppConfig first with environment
   serviceLocator.registerLazySingleton<AppConfig>(
     () => AppConfig.fromString(environment ?? 'prod'),

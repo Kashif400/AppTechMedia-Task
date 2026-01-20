@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import 'package:talker_dio_logger/talker_dio_logger.dart';
 import '../constants/app_config.dart';
 import '../utils/local_storage_service.dart';
+import '../utils/talker_service.dart';
 import 'network_exceptions.dart';
 import 'request_response.dart';
 import 'interceptors.dart';
@@ -9,19 +11,37 @@ import 'interceptors.dart';
 class DioClient {
   final _config = GetIt.instance<AppConfig>();
   final _localStorage = GetIt.instance<LocalStorageService>();
+  final _talkerService = GetIt.instance<TalkerService>();
 
   Future<Dio> launchDio({bool isMultipart = false}) async {
     String? accessToken = _localStorage.accessToken;
 
     Dio dio = Dio();
-    dio.interceptors.add(LogInterceptor(responseBody: true, requestBody: true));
+
+    // Add Talker Dio Logger for comprehensive HTTP logging
+    dio.interceptors.add(
+      TalkerDioLogger(
+        talker: _talkerService.talker,
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: true,
+          printResponseHeaders: true,
+          printRequestData: true,
+          printResponseData: true,
+          printResponseMessage: true,
+          printErrorData: true,
+          printErrorHeaders: true,
+          printErrorMessage: true,
+        ),
+      ),
+    );
+
     dio.interceptors.add(TokenInterceptor());
 
     // Add retry interceptor for connection errors
     dio.interceptors.add(
       RetryInterceptor(
         dio: dio,
-        logPrint: (message) => print('🔄 $message'),
+        logPrint: (message) => _talkerService.info('🔄 Retry: $message'),
         retries: 3,
         retryDelays: const [
           Duration(seconds: 1),
@@ -83,7 +103,7 @@ class DioClient {
         );
       }
     } catch (error) {
-      print('❌ @get error: $error');
+      _talkerService.error(error, message: 'GET Error - Endpoint: $endPoint');
       final networkExceptions = NetworkExceptions.getDioException(error);
       errorMessage = NetworkExceptions.getErrorMessage(networkExceptions);
     }
@@ -93,7 +113,7 @@ class DioClient {
   Future<RequestResponse> post({required String endPoint, dynamic data}) async {
     String? errorMessage;
     try {
-      print('📤 POST: ${_config.baseUrl}/$endPoint');
+      _talkerService.info('📤 POST Request', data: endPoint);
       bool isMultipart = data is FormData;
       Dio dio = await launchDio(isMultipart: isMultipart);
       final response = await dio.post(
@@ -127,7 +147,7 @@ class DioClient {
         );
       }
     } catch (error) {
-      print('❌ @post error: $error');
+      _talkerService.error(error, message: 'POST Error - Endpoint: $endPoint');
       final networkExceptions = NetworkExceptions.getDioException(error);
       errorMessage = NetworkExceptions.getErrorMessage(networkExceptions);
     }
@@ -168,7 +188,7 @@ class DioClient {
         );
       }
     } catch (error) {
-      print('❌ @put error: $error');
+      _talkerService.error(error, message: 'PUT Error - Endpoint: $endPoint');
       final networkExceptions = NetworkExceptions.getDioException(error);
       errorMessage = NetworkExceptions.getErrorMessage(networkExceptions);
     }
@@ -212,7 +232,7 @@ class DioClient {
         );
       }
     } catch (error) {
-      print('❌ @patch error: $error');
+      _talkerService.error(error, message: 'PATCH Error - Endpoint: $endPoint');
       final networkExceptions = NetworkExceptions.getDioException(error);
       errorMessage = NetworkExceptions.getErrorMessage(networkExceptions);
     }
@@ -256,7 +276,10 @@ class DioClient {
         );
       }
     } catch (error) {
-      print('❌ @delete error: $error');
+      _talkerService.error(
+        error,
+        message: 'DELETE Error - Endpoint: $endPoint',
+      );
       final networkExceptions = NetworkExceptions.getDioException(error);
       errorMessage = NetworkExceptions.getErrorMessage(networkExceptions);
     }

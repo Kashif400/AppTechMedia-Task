@@ -1,5 +1,7 @@
+import 'package:get_it/get_it.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/utils/local_storage_service.dart';
+import '../../../../core/utils/talker_service.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
@@ -10,6 +12,7 @@ abstract class AuthRemoteDataSource {
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final DioClient dioClient;
   final LocalStorageService localStorage;
+  final _talker = GetIt.instance<TalkerService>();
 
   AuthRemoteDataSourceImpl({
     required this.dioClient,
@@ -21,6 +24,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
+    _talker.debug('🌐 Remote sign in API call', data: {'email': email});
+
     final response = await dioClient.post(
       endPoint: 'auth/signin',
       data: {'email': email, 'password': password},
@@ -61,31 +66,41 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         // Save tokens to local storage
         if (accessToken != null) {
           localStorage.accessToken = accessToken;
-          print('✅ Access token saved');
+          _talker.debug('✅ Access token saved to storage');
         }
         if (refreshToken != null) {
           localStorage.refreshToken = refreshToken;
-          print('✅ Refresh token saved');
+          _talker.debug('✅ Refresh token saved to storage');
         }
 
+        _talker.info('✅ Remote sign in successful');
         return UserModel.fromJson(userData);
       }
 
+      _talker.error('❌ Invalid response format');
       throw Exception('Invalid response format');
     } else {
-      throw Exception(response.error ?? response.message ?? 'Sign in failed');
+      final errorMsg = response.error ?? response.message ?? 'Sign in failed';
+      _talker.error('❌ Sign in failed', message: errorMsg);
+      throw Exception(errorMsg);
     }
   }
 
   @override
   Future<void> signOut() async {
     try {
+      _talker.debug('🚪 Remote sign out - clearing local data');
       // Clear local tokens
       await localStorage.clearTokens();
       await localStorage.clearUserData();
-      print('✅ User signed out, tokens cleared');
-    } catch (e) {
-      print('❌ Sign out error: $e');
+      _talker.info('✅ User signed out, tokens cleared');
+    } catch (e, stackTrace) {
+      _talker.error(
+        '❌ Sign out error',
+        stackTrace: stackTrace,
+        message: e.toString(),
+      );
+      rethrow;
     }
   }
 }

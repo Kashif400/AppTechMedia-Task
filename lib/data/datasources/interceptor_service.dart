@@ -4,10 +4,12 @@ import 'package:get_it/get_it.dart';
 import '../models/login_response.dart';
 import '../datasources/authentication_service.dart';
 import '../../core/utils/local_storage_service.dart';
+import '../../core/utils/talker_service.dart';
 
 class TokenInterceptor extends Interceptor {
   final _localStorageService = GetIt.instance<LocalStorageService>();
   final _authService = GetIt.instance<AuthenticationService>();
+  final _talker = GetIt.instance<TalkerService>();
 
   TokenInterceptor();
   // ignore: prefer_typing_uninitialized_variables
@@ -15,15 +17,20 @@ class TokenInterceptor extends Interceptor {
 
   @override
   Future onRequest(RequestOptions? options, handler) async {
-    print('@Interceptor.onRequest: Dio Request $options');
+    _talker.debug(
+      '🌐 Interceptor.onRequest',
+      data: {'url': options?.uri.toString(), 'method': options?.method},
+    );
 
     // Add appropriate token to headers (user token or guest token)
     final token = _authService.currentToken;
     if (token != null) {
       options?.headers['Authorization'] = 'Bearer $token';
-      print('🔑 Using ${_authService.tokenType}: ${token.substring(0, 20)}...');
+      _talker.debug(
+        '🔑 Using ${_authService.tokenType}: ${token.substring(0, 20)}...',
+      );
     } else {
-      print('⚠️ No token available for request');
+      _talker.warning('⚠️ No token available for request');
     }
 
     requestOptions = options;
@@ -35,24 +42,32 @@ class TokenInterceptor extends Interceptor {
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
-    print('@Interceptor.onResponse: Dio Response $response');
+    _talker.debug(
+      '🌐 Interceptor.onResponse',
+      data: {
+        'statusCode': response.statusCode,
+        'url': response.requestOptions.uri.toString(),
+      },
+    );
 
     try {
       if (response.statusCode == 401) {
-        print('🔒 Received 401 Unauthorized - attempting token refresh');
+        _talker.warning(
+          '🔒 Received 401 Unauthorized - attempting token refresh',
+        );
 
         // Don't immediately clear the access token - keep it until we know refresh fails
         final refreshToken = _localStorageService.refreshToken;
         final refreshTokenExpiry = _localStorageService.refreshTokenExpiry;
 
         if (refreshToken == null || refreshToken.isEmpty) {
-          print('❌ No refresh token available');
+          _talker.error('❌ No refresh token available');
           GetIt.instance<AuthenticationService>().localSignOut();
           return handler.next(response);
         }
 
         if (refreshTokenExpiry == null || refreshTokenExpiry.isEmpty) {
-          print('❌ Refresh token expiry is null or empty');
+          _talker.error('❌ Refresh token expiry is null or empty');
           GetIt.instance<AuthenticationService>().localSignOut();
           return handler.next(response);
         }
@@ -60,24 +75,28 @@ class TokenInterceptor extends Interceptor {
         try {
           final expiry = DateTime.parse(refreshTokenExpiry);
           if (expiry.isBefore(DateTime.now())) {
-            print('❌ Refresh token has expired');
+            _talker.error('❌ Refresh token has expired');
             GetIt.instance<AuthenticationService>().localSignOut();
             return handler.next(response);
           }
-        } catch (e) {
-          print('❌ Error parsing refresh token expiry: $e');
+        } catch (e, stackTrace) {
+          _talker.error(
+            '❌ Error parsing refresh token expiry',
+            stackTrace: stackTrace,
+            message: e.toString(),
+          );
           GetIt.instance<AuthenticationService>().localSignOut();
           return handler.next(response);
         }
 
         // Try refreshing the token
-        print('🔄 Attempting to refresh access token');
+        _talker.info('🔄 Attempting to refresh access token');
         LoginResponse refreshResponse =
             await GetIt.instance<AuthenticationService>().refreshAccessToken();
 
         if (refreshResponse.success &&
             refreshResponse.data?.accessToken != null) {
-          print('✅ Token refreshed successfully');
+          _talker.info('✅ Token refreshed successfully');
 
           // Update the original request with the new token and retry
           final newToken = refreshResponse.data!.accessToken;
@@ -104,31 +123,44 @@ class TokenInterceptor extends Interceptor {
               queryParameters: newOptions.queryParameters,
             );
 
-            print('✅ Retried request successful');
+            _talker.info('✅ Retried request successful');
             return handler.resolve(retriedResponse);
-          } catch (retryError) {
-            print('❌ Failed to retry request after token refresh: $retryError');
+          } catch (retryError, stackTrace) {
+            _talker.error(
+              '❌ Failed to retry request after token refresh',
+              stackTrace: stackTrace,
+              message: retryError.toString(),
+            );
             return handler.next(response);
           }
         } else {
-          print('❌ Token refresh failed');
+          _talker.error('❌ Token refresh failed');
           GetIt.instance<AuthenticationService>().localSignOut();
           return handler.next(response);
         }
       }
 
       // If no 401, just forward the response
-      print('✅ Request successful, proceeding with response');
+      _talker.debug('✅ Request successful, proceeding with response');
       return handler.next(response);
     } catch (e, stacktrace) {
-      print('❌ Error in onResponse: $e\n$stacktrace');
+      _talker.error(
+        '❌ Error in onResponse',
+        stackTrace: stacktrace,
+        message: e.toString(),
+      );
       return handler.next(response);
     }
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    print('@Interceptor.onError: Dio Error ${err.message}');
+    _talker.error(
+      err,
+      stackTrace: err.stackTrace,
+      message:
+          '🌐 Interceptor.onError: ${err.type} - ${err.message ?? "Unknown error"}\nURL: ${err.requestOptions.uri}',
+    );
 
     // Don't show snackbar for timeout or connection errors as they're too common
     // and will be handled by the UI layer
@@ -151,10 +183,14 @@ class TokenInterceptor extends Interceptor {
           duration: const Duration(seconds: 3),
         );
       } else {
-        print("Cannot show error snackbar: ${err.message}");
+        _talker.debug("Cannot show error snackbar: ${err.message}");
       }
-    } catch (e) {
-      print("Error showing snackbar: $e");
+    } catch (e, stackTrace) {
+      _talker.error(
+        e,
+        stackTrace: stackTrace,
+        message: "Error showing snackbar",
+      );
     }
 
     // Always resolve with a proper response to prevent further crashes
