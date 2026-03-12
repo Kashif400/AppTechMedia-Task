@@ -23,7 +23,8 @@ class MessageList extends StatelessWidget {
           prev.hasMoreMessages != curr.hasMoreMessages ||
           prev.sendMessageStatus != curr.sendMessageStatus,
       builder: (context, state) {
-        if (state.selectedConversationId == null && state.messages.isEmpty) {
+        if (state.selectedConversationId?.isEmpty == true &&
+            state.messages.isEmpty) {
           return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -89,8 +90,11 @@ class MessageList extends StatelessWidget {
         }
 
         final messages = state.messages;
-        final itemCount = messages.length + (state.hasMoreMessages ? 1 : 0);
         final isTyping = state.sendMessageStatus == PostApiStatus.loading;
+        // Extra slot at index 0 for the typing indicator so user messages are not displaced
+        final extraTyping = isTyping ? 1 : 0;
+        final itemCount =
+            messages.length + extraTyping + (state.hasMoreMessages ? 1 : 0);
 
         return ListView.builder(
           controller: scrollController,
@@ -103,7 +107,13 @@ class MessageList extends StatelessWidget {
           ),
           itemCount: itemCount,
           itemBuilder: (context, index) {
-            if (state.hasMoreMessages && index == messages.length) {
+            if (isTyping && index == 0) {
+              return _buildLeftLoadingIndicator(context);
+            }
+
+            final msgIndex = index - extraTyping;
+
+            if (state.hasMoreMessages && msgIndex == messages.length) {
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
                 child: Center(
@@ -116,10 +126,7 @@ class MessageList extends StatelessWidget {
               );
             }
 
-            if (isTyping && index == 0) {
-              return _buildLeftLoadingIndicator(context);
-            }
-            final message = messages[messages.length - 1 - index];
+            final message = messages[messages.length - 1 - msgIndex];
             return MessageBubble(message: message);
           },
         );
