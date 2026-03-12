@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Primary Colors -->
-    <color name="primary">#006AFF</color>
-    <color name="primary_light">#F0F6FF</color>
+    <color name="primary">#044278</color>
+    <color name="primary_light">#E6ECF2</color>
+    <color name="primary_lightTheme">#FF7B2FFF</color>
+
     <color name="accent">#03DAC6</color>
     
     <!-- Outline Colors -->
@@ -20,6 +22,7 @@
     <color name="card_foreground">#FFFFFF</color>
     <color name="surface">#FFFFFF</color>
     <color name="white">#FFFFFF</color>
+    <color name="light_gray">#F0F0F0</color>
     
     <!-- TextField Colors -->
     <color name="textfield">#E6E8EB</color>

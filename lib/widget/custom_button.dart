@@ -57,7 +57,7 @@ class CustomButton extends StatelessWidget {
           if (states.contains(WidgetState.disabled)) {
             return disabledColor ?? const Color.fromRGBO(201, 206, 214, 1);
           }
-          return backgroundColor ?? Theme.of(context).primaryColor;
+          return backgroundColor ?? Theme.of(context).colorScheme.primary;
         }),
         padding: WidgetStateProperty.all(
           padding ?? EdgeInsets.symmetric(horizontal: 16.w),

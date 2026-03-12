@@ -1,4 +1,5 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'enum.dart';
 import 'env.dart';
 
 class AppConfig {
@@ -6,6 +7,7 @@ class AppConfig {
 
   // For local testing, change to ngrok URL (e.g., 'https://xxxxx.ngrok-free.app')
   final String _devBaseUrl = 'https://gateway.ashtra.ai';
+
   final String _testBaseUrl = 'https://gateway.ashtra.ai';
   final String _prodBaseUrl = 'https://api.ashtra.ai';
 

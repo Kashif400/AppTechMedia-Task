@@ -50,6 +50,9 @@ class ColorName {
   /// Color: #E6F3FB
   static const Color gradientStart = Color(0xFFE6F3FB);
 
+  /// Color: #F0F0F0
+  static const Color lightGray = Color(0xFFF0F0F0);
+
   /// Color: #E6E8EB
   static const Color lightOutlines = Color(0xFFE6E8EB);
 
@@ -68,11 +71,14 @@ class ColorName {
   /// Color: #28A745
   static const Color onlineGreen = Color(0xFF28A745);
 
-  /// Color: #006AFF
-  static const Color primary = Color(0xFF006AFF);
+  /// Color: #044278
+  static const Color primary = Color(0xFF044278);
 
-  /// Color: #F0F6FF
-  static const Color primaryLight = Color(0xFFF0F6FF);
+  /// Color: #E6ECF2
+  static const Color primaryLight = Color(0xFFE6ECF2);
+
+  /// Color: #FF7B2FFF
+  static const Color primaryLightTheme = Color(0xFF7B2FFF);
 
   /// Color: #23B159
   static const Color success = Color(0xFF23B159);

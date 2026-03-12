@@ -1,221 +1,221 @@
+import 'package:clean_code_architecture_app/widget/dark_swich_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import '../bloc/auth_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../widget/app_logo.dart';
+import '../widgets/gradient_header.dart';
+import '../widgets/input_email.dart';
+import '../widgets/input_password.dart';
+import '../widgets/sign_in_button.dart';
+import '../widgets/soical_button.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginPage extends StatelessWidget {
+  LoginPage({super.key});
 
-  @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-
-  @override
-  void initState() {
-    super.initState();
-    // Pre-fill with test credentials
-    _emailController.text = 'kashif90009000@gmail.com';
-    _passwordController.text = 'Kashif@400';
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _onSignIn() {
-    if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthBloc>().add(
-        SignInRequested(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cs = theme.colorScheme;
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In'), centerTitle: true),
-      body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthAuthenticated) {
-            // Navigate to home on successful login
-            context.go('/home');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Welcome, ${state.user.name}!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 40),
-                  // App Logo or Icon
-                  const Icon(Icons.lock_outline, size: 80, color: Colors.blue),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Welcome Back!',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Sign in to continue',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-                  // Email Field
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'Enter your email',
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: GradientHeader(
+              primary: cs.primary,
+              isDark: isDark,
+              topPadding: topPadding,
+            ),
+          ),
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _HeaderSection(topPadding: topPadding, primary: cs.primary),
+
+                Transform.translate(
+                  offset: const Offset(0, -28),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF252838) : Colors.white,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.35 : 0.1,
+                            ),
+                            blurRadius: 32,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 12),
+                          ),
+                        ],
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!RegExp(
-                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                      ).hasMatch(value)) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Password Field
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      hintText: 'Enter your password',
-                      prefixIcon: const Icon(Icons.lock_outlined),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  // Sign In Button
-                  SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: state is AuthLoading ? null : _onSignIn,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: state is AuthLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'Sign In',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                      padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 32.h),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Hy, Welcome 👋',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Sign in to your account',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 21,
+                              ),
+                            ),
+                            26.verticalSpace,
+
+                            const InputEmail(),
+                            18.verticalSpace,
+                            const InputPassword(),
+
+                            // ── Forgot password ────────────────
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {},
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 4.w,
+                                    vertical: 8.h,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Forgot Password?',
+                                  style: TextStyle(
+                                    color: cs.primary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13.sp,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            6.verticalSpace,
+                            // ── Sign in button ─────────────────
+                            SignInButton(formKey: _formKey),
+                            20.verticalSpace,
+
+                            // ── Divider ────────────────────────
+                            Row(
+                              children: [
+                                Expanded(child: Divider()),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    'or continue with',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(child: Divider()),
+                              ],
+                            ),
+                            20.verticalSpace,
+
+                            // ── Social buttons ─────────────────
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SocialButton(
+                                    label: 'Google',
+                                    icon: Icons.g_mobiledata_rounded,
+                                    isDark: isDark,
+                                    onTap: () {},
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: SocialButton(
+                                    label: 'Apple',
+                                    icon: Icons.apple_rounded,
+                                    isDark: isDark,
+                                    onTap: () {},
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  // Test credentials info
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Test Credentials:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Email: kashif90009000@gmail.com',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        Text(
-                          'Password: Kashif@400',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                16.verticalSpace,
+              ],
             ),
-          );
-        },
+          ),
+
+          Positioned(
+            top: topPadding + 10,
+            right: 16,
+            child: const DarkSwichButton(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderSection extends StatelessWidget {
+  final double topPadding;
+  final Color primary;
+
+  const _HeaderSection({required this.topPadding, required this.primary});
+
+  @override
+  Widget build(BuildContext context) {
+    return // ── Hero section ──────────────────────────────
+    SizedBox(
+      height: topPadding + 220,
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.only(top: topPadding),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppLogo(size: 68, primary: primary),
+              const SizedBox(height: 14),
+              const Text(
+                'Rehab AI',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Your personal rehab assistant',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

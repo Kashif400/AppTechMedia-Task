@@ -18,6 +18,7 @@ class LocalStorageService {
   static const String roleKey = 'role';
   static const String activeAddressIdKey = 'activeAddressId';
   static const String localeKey = 'locale';
+  static const String themeModeKey = 'themeMode';
   //getNotificationsStatus
   static const String notificationsStatusKey = 'notificationsStatus';
 
@@ -27,6 +28,9 @@ class LocalStorageService {
   ///
   dynamic get getLocale => _getFromDisk(localeKey);
   set setLocale(String locale) => _saveToDisk(localeKey, locale);
+
+  String? get themeMode => _getFromDisk(themeModeKey);
+  set themeMode(String? mode) => _saveToDisk(themeModeKey, mode);
 
   int get onBoardingPageCount => _getFromDisk(onboardingCountKey) ?? 0;
   set onBoardingPageCount(int count) => _saveToDisk(onboardingCountKey, count);

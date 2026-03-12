@@ -1,4 +1,4 @@
-enum Env { dev, prod, test }
+import 'enum.dart';
 
 extension EnvExtension on Env {
   String get name {

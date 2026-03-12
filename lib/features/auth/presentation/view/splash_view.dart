@@ -16,14 +16,14 @@ class _SplashViewState extends State<SplashView> {
   @override
   void initState() {
     super.initState();
-    _navigateToOnboarding();
+    _navigateToSignIn();
   }
 
-  Future<void> _navigateToOnboarding() async {
+  Future<void> _navigateToSignIn() async {
     // Wait for 4 seconds
     await Future.delayed(const Duration(seconds: 4));
 
-    context.go(AppRoutes.onBoardView);
+    context.go(AppRoutes.signInView);
   }
 
   @override
@@ -43,7 +43,7 @@ class _SplashViewState extends State<SplashView> {
                   TextSpan(
                     text: 'Ashtra\n',
                     style: TextStyle(
-                      fontFamily: FontFamily.roboto,
+                      fontFamily: FontFamily.montserrat,
                       fontSize: 33.sp,
                       color: const Color(0xFF9A9A9A),
                       fontWeight: FontWeight.w800,
@@ -53,7 +53,7 @@ class _SplashViewState extends State<SplashView> {
                   TextSpan(
                     text: ' Ascend',
                     style: TextStyle(
-                      fontFamily: FontFamily.roboto,
+                      fontFamily: FontFamily.montserrat,
                       fontSize: 33.sp,
                       height: 1,
                       color: ColorName.primary,
@@ -75,6 +75,5 @@ class _SplashViewState extends State<SplashView> {
         ),
       ),
     );
-    ;
   }
 }

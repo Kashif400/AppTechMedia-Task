@@ -11,15 +11,6 @@
 class FontFamily {
   FontFamily._();
 
-  /// Font family: Inter
-  static const String inter = 'Inter';
-
-  /// Font family: Poppins
-  static const String poppins = 'Poppins';
-
-  /// Font family: Roboto
-  static const String roboto = 'Roboto';
-
-  /// Font family: Source Sans Pro
-  static const String sourceSansPro = 'Source Sans Pro';
+  /// Font family: Montserrat
+  static const String montserrat = 'Montserrat';
 }

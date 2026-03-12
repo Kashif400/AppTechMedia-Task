@@ -24,66 +24,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
-    _talker.debug('🌐 Remote sign in API call', data: {'email': email});
-
     final response = await dioClient.post(
       endPoint: 'auth/signin',
       data: {'email': email, 'password': password},
     );
 
     if (response.success) {
-      // Handle different response structures
-      Map<String, dynamic> userData = {};
-      String? accessToken;
-      String? refreshToken;
+      final data = response.data as Map<String, dynamic>;
+      final accessToken = data['accessToken'] as String;
+      final refreshToken = data['refreshToken'] as String?;
 
-      final data = response.data;
-      if (data is Map<String, dynamic>) {
-        // Check for nested user object
-        if (data.containsKey('user')) {
-          userData = data['user'] as Map<String, dynamic>;
-        } else {
-          userData = data;
-        }
+      // Save tokens to local storage
+      localStorage.accessToken = accessToken;
+      if (refreshToken != null) localStorage.refreshToken = refreshToken;
+      _talker.debug('✅ Tokens saved to storage');
 
-        // Extract tokens
-        accessToken =
-            data['accessToken'] ??
-            data['access_token'] ??
-            data['token'] ??
-            userData['accessToken'] ??
-            userData['token'];
-        refreshToken =
-            data['refreshToken'] ??
-            data['refresh_token'] ??
-            userData['refreshToken'];
+      // Merge user object with token fields so UserModel.fromJson has everything
+      final userMap = {
+        ...(data['user'] as Map<String, dynamic>),
+        'token': accessToken,
+        'refreshToken': refreshToken,
+      };
 
-        // Add token to userData for UserModel
-        if (accessToken != null) {
-          userData['token'] = accessToken;
-        }
-
-        // Save tokens to local storage
-        if (accessToken != null) {
-          localStorage.accessToken = accessToken;
-          _talker.debug('✅ Access token saved to storage');
-        }
-        if (refreshToken != null) {
-          localStorage.refreshToken = refreshToken;
-          _talker.debug('✅ Refresh token saved to storage');
-        }
-
-        _talker.info('✅ Remote sign in successful');
-        return UserModel.fromJson(userData);
-      }
-
-      _talker.error('❌ Invalid response format');
-      throw Exception('Invalid response format');
-    } else {
-      final errorMsg = response.error ?? response.message ?? 'Sign in failed';
-      _talker.error('❌ Sign in failed', message: errorMsg);
-      throw Exception(errorMsg);
+      _talker.info('✅ Remote sign in successful');
+      return UserModel.fromJson(userMap);
     }
+
+    final errorMsg = response.error ?? response.message ?? 'Sign in failed';
+    _talker.error('❌ Sign in failed', message: errorMsg);
+    throw Exception(errorMsg);
   }
 
   @override
