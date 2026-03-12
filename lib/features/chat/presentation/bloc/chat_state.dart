@@ -11,7 +11,6 @@ class ChatState extends Equatable {
   final bool hasMoreMessages;
   final int messagesPage;
   final String? selectedConversationId;
-  final String? content;
 
   final PostApiStatus sendMessageStatus;
 
@@ -29,7 +28,6 @@ class ChatState extends Equatable {
     this.selectedConversationId = '',
     this.sendMessageStatus = PostApiStatus.initial,
     this.errorMessage,
-    this.content,
   });
 
   ChatState copyWith({
@@ -75,6 +73,5 @@ class ChatState extends Equatable {
     selectedConversationId,
     sendMessageStatus,
     errorMessage,
-    content,
   ];
 }

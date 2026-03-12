@@ -141,9 +141,10 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
               icon: Icon(Icons.add_rounded, size: 20.sp),
               label: Text(
                 'New Conversation',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),

@@ -228,7 +228,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         messagesStatus: Status.completed,
         hasMoreMessages: false,
         messagesPage: 1,
-        selectedConversationId: null,
+        selectedConversationId: '',
         sendMessageStatus: PostApiStatus.initial,
       ),
     );
