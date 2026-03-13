@@ -47,317 +47,333 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
     final theme = Theme.of(context);
 
     return Drawer(
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.primary.withValues(alpha: 0.75),
-                ],
-              ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 12.w),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(8.h),
-                      decoration: BoxDecoration(
-                        color: colorScheme.onPrimary.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      child: Icon(
-                        Icons.forum_rounded,
-                        color: colorScheme.onPrimary,
-                        size: 22.h,
-                      ),
-                    ),
-                    12.horizontalSpace,
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Conversations',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          BlocBuilder<ChatBloc, ChatState>(
-                            buildWhen: (p, c) =>
-                                p.conversations.length !=
-                                c.conversations.length,
-                            builder: (context, state) {
-                              if (state.conversations.isEmpty) {
-                                return const SizedBox.shrink();
-                              }
-                              final count = state.conversations.length;
-                              return Text(
-                                '$count chat${count == 1 ? '' : 's'}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onPrimary.withValues(
-                                    alpha: 0.8,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.refresh_rounded,
-                        color: colorScheme.onPrimary,
-                      ),
-                      tooltip: 'Refresh',
-                      style: IconButton.styleFrom(
-                        backgroundColor: colorScheme.onPrimary.withValues(
-                          alpha: 0.15,
-                        ),
-                      ),
-                      onPressed: () => context.read<ChatBloc>().add(
-                        const FetchConversationsRequested(),
-                      ),
-                    ),
+      child: RepaintBoundary(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colorScheme.primary,
+                    colorScheme.primary.withValues(alpha: 0.75),
                   ],
                 ),
               ),
-            ),
-          ),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-            child: FilledButton.icon(
-              icon: Icon(Icons.add_rounded, size: 20.sp),
-              label: Text(
-                'New Conversation',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              onPressed: () {
-                context.read<ChatBloc>().add(
-                  const StartNewConversationRequested(),
-                );
-                Navigator.of(context).pop();
-              },
-            ),
-          ),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 4.h),
-            child: Row(
-              children: [
-                Text(
-                  'RECENT',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.9,
-                  ),
-                ),
-                8.horizontalSpace,
-                Expanded(
-                  child: Divider(color: colorScheme.outlineVariant, height: 1),
-                ),
-              ],
-            ),
-          ),
-
-          4.verticalSpace,
-
-          Expanded(
-            child: BlocBuilder<ChatBloc, ChatState>(
-              buildWhen: (prev, curr) =>
-                  prev.conversations != curr.conversations ||
-                  prev.conversationsStatus != curr.conversationsStatus ||
-                  prev.selectedConversationId != curr.selectedConversationId ||
-                  prev.hasMoreConversations != curr.hasMoreConversations,
-              builder: (context, state) {
-                if (state.conversationsStatus == Status.loading &&
-                    state.conversations.isEmpty) {
-                  return const _SkeletonList();
-                }
-
-                if (state.conversationsStatus == Status.error &&
-                    state.conversations.isEmpty) {
-                  return _ErrorView(
-                    message: state.errorMessage,
-                    onRetry: () => context.read<ChatBloc>().add(
-                      const FetchConversationsRequested(),
-                    ),
-                  );
-                }
-
-                if (state.conversations.isEmpty) {
-                  return const _EmptyView();
-                }
-
-                final itemCount =
-                    state.conversations.length +
-                    (state.hasMoreConversations ? 1 : 0);
-
-                return ListView.builder(
-                  controller: _scrollController,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
                   padding: EdgeInsets.symmetric(
+                    vertical: 20.h,
                     horizontal: 12.w,
-                    vertical: 4.h,
                   ),
-                  itemCount: itemCount,
-                  itemBuilder: (context, index) {
-                    if (index == state.conversations.length) {
-                      return Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        child: Center(
-                          child: SizedBox(
-                            width: 22.w,
-                            height: 22.h,
-                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(8.h),
+                        decoration: BoxDecoration(
+                          color: colorScheme.onPrimary.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Icon(
+                          Icons.forum_rounded,
+                          color: colorScheme.onPrimary,
+                          size: 22.h,
+                        ),
+                      ),
+                      12.horizontalSpace,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Conversations',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colorScheme.onPrimary,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            BlocBuilder<ChatBloc, ChatState>(
+                              buildWhen: (p, c) =>
+                                  p.conversations.length !=
+                                  c.conversations.length,
+                              builder: (context, state) {
+                                if (state.conversations.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+                                final count = state.conversations.length;
+                                return Text(
+                                  '$count chat${count == 1 ? '' : 's'}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onPrimary.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.refresh_rounded,
+                          color: colorScheme.onPrimary,
+                        ),
+                        tooltip: 'Refresh',
+                        style: IconButton.styleFrom(
+                          backgroundColor: colorScheme.onPrimary.withValues(
+                            alpha: 0.15,
+                          ),
+                        ),
+                        onPressed: () => context.read<ChatBloc>().add(
+                          const FetchConversationsRequested(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+              child: FilledButton.icon(
+                icon: Icon(Icons.add_rounded, size: 20.sp),
+                label: Text(
+                  'New Conversation',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  context.read<ChatBloc>().add(
+                    const StartNewConversationRequested(),
+                  );
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
+
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 4.h),
+              child: Row(
+                children: [
+                  Text(
+                    'RECENT',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.9,
+                    ),
+                  ),
+                  8.horizontalSpace,
+                  Expanded(
+                    child: Divider(
+                      color: colorScheme.outlineVariant,
+                      height: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            4.verticalSpace,
+
+            Expanded(
+              child: BlocBuilder<ChatBloc, ChatState>(
+                buildWhen: (prev, curr) =>
+                    prev.conversations != curr.conversations ||
+                    prev.conversationsStatus != curr.conversationsStatus ||
+                    prev.selectedConversationId !=
+                        curr.selectedConversationId ||
+                    prev.hasMoreConversations != curr.hasMoreConversations,
+                builder: (context, state) {
+                  if (state.conversationsStatus == Status.loading &&
+                      state.conversations.isEmpty) {
+                    return const _SkeletonList();
+                  }
+
+                  if (state.conversationsStatus == Status.error &&
+                      state.conversations.isEmpty) {
+                    return _ErrorView(
+                      message: state.errorMessage,
+                      onRetry: () => context.read<ChatBloc>().add(
+                        const FetchConversationsRequested(),
+                      ),
+                    );
+                  }
+
+                  if (state.conversations.isEmpty) {
+                    return const _EmptyView();
+                  }
+
+                  final itemCount =
+                      state.conversations.length +
+                      (state.hasMoreConversations ? 1 : 0);
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 4.h,
+                    ),
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      if (index == state.conversations.length) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          child: Center(
+                            child: SizedBox(
+                              width: 22.w,
+                              height: 22.h,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      final conv = state.conversations[index];
+                      final isSelected =
+                          conv.id == state.selectedConversationId;
+                      final avatarColor = conv.title.toAvatarColor();
+                      final dateLabel = (conv.updatedAt ?? conv.createdAt)
+                          .toRelativeTime();
+
+                      return RepaintBoundary(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 3.h),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? colorScheme.primaryContainer.withValues(
+                                      alpha: 0.55,
+                                    )
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(14),
+                              border: isSelected
+                                  ? Border.all(
+                                      color: colorScheme.primary.withValues(
+                                        alpha: 0.35,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () {
+                                if (conv.id != null) {
+                                  context.read<ChatBloc>().add(
+                                    FetchMessagesRequested(conv.id!),
+                                  );
+                                }
+                                Navigator.of(context).pop();
+                              },
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 10.h,
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Rounded square avatar
+                                    Container(
+                                      width: 40.w,
+                                      height: 40.h,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? colorScheme.primary
+                                            : avatarColor.withValues(
+                                                alpha: 0.15,
+                                              ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          (conv.title?.isNotEmpty == true
+                                                  ? conv.title![0]
+                                                  : 'C')
+                                              .toUpperCase(),
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                color: isSelected
+                                                    ? colorScheme.onPrimary
+                                                    : avatarColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                    12.horizontalSpace,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            conv.title ?? 'Untitled',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w600
+                                                      : FontWeight.w500,
+                                                  color: isSelected
+                                                      ? colorScheme.primary
+                                                      : colorScheme.onSurface,
+                                                  fontSize: 14.sp,
+                                                ),
+                                          ),
+                                          if (dateLabel.isNotEmpty) ...[
+                                            2.verticalSpace,
+                                            Text(
+                                              dateLabel,
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: colorScheme
+                                                        .onSurfaceVariant,
+                                                    fontSize: 11.sp,
+                                                  ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      Icon(
+                                        Icons.chat_bubble_rounded,
+                                        size: 16.sp,
+                                        color: colorScheme.primary,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       );
-                    }
-
-                    final conv = state.conversations[index];
-                    final isSelected = conv.id == state.selectedConversationId;
-                    final avatarColor = conv.title.toAvatarColor();
-                    final dateLabel = (conv.updatedAt ?? conv.createdAt)
-                        .toRelativeTime();
-
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3.h),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? colorScheme.primaryContainer.withValues(
-                                  alpha: 0.55,
-                                )
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
-                          border: isSelected
-                              ? Border.all(
-                                  color: colorScheme.primary.withValues(
-                                    alpha: 0.35,
-                                  ),
-                                )
-                              : null,
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: () {
-                            if (conv.id != null) {
-                              context.read<ChatBloc>().add(
-                                FetchMessagesRequested(conv.id!),
-                              );
-                            }
-                            Navigator.of(context).pop();
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12.w,
-                              vertical: 10.h,
-                            ),
-                            child: Row(
-                              children: [
-                                // Rounded square avatar
-                                Container(
-                                  width: 40.w,
-                                  height: 40.h,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? colorScheme.primary
-                                        : avatarColor.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      (conv.title?.isNotEmpty == true
-                                              ? conv.title![0]
-                                              : 'C')
-                                          .toUpperCase(),
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            color: isSelected
-                                                ? colorScheme.onPrimary
-                                                : avatarColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                                12.horizontalSpace,
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        conv.title ?? 'Untitled',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              fontWeight: isSelected
-                                                  ? FontWeight.w600
-                                                  : FontWeight.w500,
-                                              color: isSelected
-                                                  ? colorScheme.primary
-                                                  : colorScheme.onSurface,
-                                              fontSize: 14.sp,
-                                            ),
-                                      ),
-                                      if (dateLabel.isNotEmpty) ...[
-                                        2.verticalSpace,
-                                        Text(
-                                          dateLabel,
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                                color: colorScheme
-                                                    .onSurfaceVariant,
-                                                fontSize: 11.sp,
-                                              ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                if (isSelected)
-                                  Icon(
-                                    Icons.chat_bubble_rounded,
-                                    size: 16.sp,
-                                    color: colorScheme.primary,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
