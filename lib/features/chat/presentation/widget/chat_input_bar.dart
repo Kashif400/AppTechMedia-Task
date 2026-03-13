@@ -63,7 +63,9 @@ class _ChatInputBarState extends State<ChatInputBar> {
       buildWhen: (prev, curr) =>
           prev.sendMessageStatus != curr.sendMessageStatus,
       builder: (context, state) {
-        final isLoading = state.sendMessageStatus == PostApiStatus.loading;
+        final isLoading =
+            state.sendMessageStatus == PostApiStatus.loading ||
+            state.sendMessageStatus == PostApiStatus.streaming;
 
         return SafeArea(
           top: false,

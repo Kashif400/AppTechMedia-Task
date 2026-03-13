@@ -46,19 +46,61 @@ class _MessageViewState extends State<MessageView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ChatBloc, ChatState>(
-      listenWhen: (prev, curr) =>
-          prev.sendMessageStatus != curr.sendMessageStatus &&
-          curr.sendMessageStatus == PostApiStatus.success,
-      listener: (_, _) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        // Scroll to bottom on successful send.
+        BlocListener<ChatBloc, ChatState>(
+          listenWhen: (prev, curr) =>
+              prev.sendMessageStatus != curr.sendMessageStatus &&
+              curr.sendMessageStatus == PostApiStatus.success,
+          listener: (_, __) {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          },
+        ),
+        // Show a SnackBar with a Retry action on send error.
+        BlocListener<ChatBloc, ChatState>(
+          listenWhen: (prev, curr) =>
+              prev.sendMessageStatus != curr.sendMessageStatus &&
+              curr.sendMessageStatus == PostApiStatus.error,
+          listener: (ctx, state) {
+            ScaffoldMessenger.of(ctx)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.errorMessage ?? 'Failed to send message.',
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  backgroundColor: Theme.of(ctx).colorScheme.error,
+                  behavior: SnackBarBehavior.floating,
+                  action: SnackBarAction(
+                    label: 'Retry',
+                    textColor: Theme.of(ctx).colorScheme.onError,
+                    onPressed: () {
+                      final lastMsg = context
+                          .read<ChatBloc>()
+                          .state
+                          .messages
+                          .lastOrNull;
+                      if (lastMsg != null && lastMsg.role == 'user') {
+                        context.read<ChatBloc>().add(
+                          SendMessageRequested(message: lastMsg.content ?? ''),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              );
+          },
+        ),
+      ],
       child: BlocBuilder<ChatBloc, ChatState>(
         buildWhen: (prev, curr) =>
             prev.selectedConversationId != curr.selectedConversationId ||

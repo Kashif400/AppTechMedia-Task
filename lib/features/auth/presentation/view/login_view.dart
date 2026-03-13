@@ -8,8 +8,8 @@ import '../widgets/input_password.dart';
 import '../widgets/sign_in_button.dart';
 import '../widgets/soical_button.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
+class LoginView extends StatelessWidget {
+  LoginView({super.key});
 
   final _formKey = GlobalKey<FormState>();
 

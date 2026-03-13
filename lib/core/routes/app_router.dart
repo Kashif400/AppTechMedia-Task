@@ -34,7 +34,7 @@ final GoRouter _router = GoRouter(
       pageBuilder: (context, state) => customPageBuilderWidget(
         context,
         state,
-        BlocProvider(create: (_) => locator<LoginBloc>(), child: LoginPage()),
+        BlocProvider(create: (_) => locator<LoginBloc>(), child: LoginView()),
       ),
     ),
 
