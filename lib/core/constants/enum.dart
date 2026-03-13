@@ -1,4 +1,4 @@
-enum PostApiStatus { initial, loading, success, error }
+enum PostApiStatus { initial, loading, streaming, success, error }
 
 enum Status { loading, completed, error }
 

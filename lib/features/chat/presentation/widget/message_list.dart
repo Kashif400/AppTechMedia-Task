@@ -127,6 +127,13 @@ class MessageList extends StatelessWidget {
             }
 
             final message = messages[messages.length - 1 - msgIndex];
+            // Skip the transient empty AI placeholder while the stream
+            // hasn't started yet — the typing indicator covers that slot.
+            if (message.role != 'user' &&
+                (message.content?.isEmpty ?? true) &&
+                isTyping) {
+              return const SizedBox.shrink();
+            }
             return MessageBubble(message: message);
           },
         );

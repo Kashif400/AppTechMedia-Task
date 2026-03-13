@@ -1,4 +1,6 @@
+import 'package:clean_code_architecture_app/generated/fonts.gen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../domain/entities/message.dart';
@@ -13,6 +15,7 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final content = message.content ?? '';
 
     return Align(
       alignment: _isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -42,20 +45,37 @@ class MessageBubble extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Message content
-            Text(
-              message.content ?? '',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: _isUser ? colorScheme.onPrimary : colorScheme.onSurface,
-                fontSize: 14.sp,
+        child: _isUser
+            ? Text(
+                content,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onPrimary,
+                  fontSize: 14.sp,
+                ),
+              )
+            : MarkdownBody(
+                data: content,
+                selectable: true,
+                styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                    .copyWith(
+                      p: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontSize: 14.sp,
+                      ),
+                      code: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontFamily: FontFamily.montserrat,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                      ),
+                      codeblockDecoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant,
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

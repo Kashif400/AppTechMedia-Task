@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/enum.dart';
 import '../../domain/usecases/fetch_conversations.dart';
 import '../../domain/usecases/fetch_messages.dart';
-import '../../domain/usecases/send_message.dart';
+import '../../domain/usecases/stream_ai_response.dart';
+import '../../domain/entities/chat_stream_event.dart';
 import '../../domain/entities/conversation.dart';
 import '../../domain/entities/message.dart';
 
@@ -14,12 +15,12 @@ part 'chat_state.dart';
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final FetchConversationsUseCase fetchConversationsUseCase;
   final FetchMessagesUseCase fetchMessagesUseCase;
-  final SendMessageUseCase sendMessageUseCase;
+  final StreamAiResponseUseCase streamAiResponseUseCase;
 
   ChatBloc({
     required this.fetchConversationsUseCase,
     required this.fetchMessagesUseCase,
-    required this.sendMessageUseCase,
+    required this.streamAiResponseUseCase,
   }) : super(const ChatState()) {
     on<FetchConversationsRequested>(_onFetchConversations);
     on<LoadMoreConversationsRequested>(_onLoadMoreConversations);
@@ -158,8 +159,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     SendMessageRequested event,
     Emitter<ChatState> emit,
   ) async {
-    final originalMessages = state.messages;
-    final conversationId = event.conversationId ?? state.selectedConversationId;
+    final originalMessages = List<Message>.from(state.messages);
+    // Treat empty string as null (no existing conversation).
+    final String? conversationId = (event.conversationId?.isNotEmpty == true)
+        ? event.conversationId
+        : (state.selectedConversationId?.isNotEmpty == true
+              ? state.selectedConversationId
+              : null);
 
     final userMessage = Message(
       conversationId: conversationId,
@@ -169,49 +175,102 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       createdAt: DateTime.now().toIso8601String(),
     );
 
+    // Placeholder for the AI response that will be filled chunk by chunk.
+    final aiPlaceholder = Message(
+      id: '${DateTime.now().millisecondsSinceEpoch}_ai',
+      conversationId: conversationId,
+      role: 'assistant',
+      content: '',
+      messageType: 'text',
+      createdAt: DateTime.now().toIso8601String(),
+    );
+
+    final withOptimistic = [...originalMessages, userMessage, aiPlaceholder];
+
     emit(
       state.copyWith(
         sendMessageStatus: PostApiStatus.loading,
-        messages: [...originalMessages, userMessage],
+        messages: withOptimistic,
         errorMessage: null,
       ),
     );
 
-    final result = await sendMessageUseCase(
+    final result = await streamAiResponseUseCase(
       conversationId: conversationId,
       message: event.message,
     );
 
-    result.fold(
-      (failure) => emit(
+    // Handle connection-level failure before streaming starts.
+    if (result.isLeft()) {
+      final failure = result.fold(
+        (f) => f,
+        (_) => throw StateError('unreachable'),
+      );
+      emit(
         state.copyWith(
           sendMessageStatus: PostApiStatus.error,
           errorMessage: failure.message,
-          messages: originalMessages,
+          // Keep user message visible; discard the empty AI placeholder.
+          messages: [...originalMessages, userMessage],
         ),
-      ),
-      (aiMessage) {
-        final newConversationId =
-            aiMessage.conversationId ?? state.selectedConversationId;
-        emit(
-          ChatState(
-            conversations: state.conversations,
-            conversationsStatus: state.conversationsStatus,
-            hasMoreConversations: state.hasMoreConversations,
-            conversationsPage: state.conversationsPage,
-            messages: [...state.messages, aiMessage],
-            messagesStatus: state.messagesStatus,
-            hasMoreMessages: state.hasMoreMessages,
-            messagesPage: state.messagesPage,
-            selectedConversationId: newConversationId,
-            sendMessageStatus: PostApiStatus.success,
-          ),
-        );
-        if (conversationId == null && newConversationId != null) {
-          add(const FetchConversationsRequested());
+      );
+      return;
+    }
+
+    final stream = result.getOrElse(() => Stream<ChatStreamEvent>.empty());
+    String accumulated = '';
+    List<Message> currentMessages = List.from(withOptimistic);
+    // Will be updated from ChatComplete; falls back to the outgoing conversationId.
+    String? newConversationId = conversationId;
+
+    await emit.forEach<ChatStreamEvent>(
+      stream,
+      onData: (event) {
+        if (event is ChatChunk) {
+          accumulated += event.text;
+          // Update the AI placeholder with the latest accumulated content.
+          currentMessages = [
+            ...currentMessages.sublist(0, currentMessages.length - 1),
+            aiPlaceholder.copyWith(content: accumulated),
+          ];
+          return state.copyWith(
+            sendMessageStatus: PostApiStatus.streaming,
+            messages: List.from(currentMessages),
+          );
         }
+        if (event is ChatComplete) {
+          // Capture the server-assigned conversationId.
+          // Critical for new conversations where we sent conversationId == null.
+          newConversationId = event.conversationId ?? newConversationId;
+        }
+        return state;
+      },
+      onError: (error, _) {
+        // Keep the user's message visible; only discard the empty AI placeholder.
+        return state.copyWith(
+          sendMessageStatus: PostApiStatus.error,
+          errorMessage: error.toString(),
+          messages: [...originalMessages, userMessage],
+        );
       },
     );
+
+    // Emit success only if streaming did not end in an error.
+    if (state.sendMessageStatus != PostApiStatus.error) {
+      emit(
+        state.copyWith(
+          sendMessageStatus: PostApiStatus.success,
+          // Pin the conversation to the server-returned (or pre-existing) id.
+          selectedConversationId:
+              newConversationId ?? state.selectedConversationId,
+        ),
+      );
+
+      // Refresh conversation list when a new conversation was just created.
+      if (conversationId == null) {
+        add(const FetchConversationsRequested());
+      }
+    }
   }
 
   void _onStartNewConversation(

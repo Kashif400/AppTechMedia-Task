@@ -5,6 +5,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/network/safe_api_call.dart';
 import '../../../../core/utils/talker_service.dart';
+import '../../domain/entities/chat_stream_event.dart';
 import '../../domain/entities/conversation.dart';
 import '../../domain/entities/message.dart';
 import '../../domain/entities/paginated_result.dart';
@@ -20,27 +21,6 @@ class ChatRepositoryImpl implements ChatRepository {
     required this.remoteDataSource,
     required this.networkInfo,
   });
-
-  @override
-  Future<Either<Failure, Message>> sendMessage({
-    String? conversationId,
-    required String message,
-  }) async {
-    _talker.info(
-      '💬 Sending message',
-      data: {'conversationId': conversationId},
-    );
-
-    return safeApiCall(networkInfo, () async {
-      final model = await remoteDataSource.sendMessage(
-        conversationId: conversationId,
-        message: message,
-      );
-
-      _talker.info('✅ Message sent successfully');
-      return model.toEntity();
-    });
-  }
 
   @override
   Future<Either<Failure, PaginatedResult<Message>>> fetchMessages({
@@ -74,6 +54,31 @@ class ChatRepositoryImpl implements ChatRepository {
         hasPreviousPage: response.pagination?.hasPreviousPage,
       );
     });
+  }
+
+  @override
+  Future<Either<Failure, Stream<ChatStreamEvent>>> streamAiResponse({
+    String? conversationId,
+    required String message,
+  }) async {
+    _talker.info(
+      '🌊 Starting AI stream',
+      data: {'conversationId': conversationId},
+    );
+
+    if (!await networkInfo.isConnected) {
+      return Left(const NetworkFailure('No internet connection'));
+    }
+
+    try {
+      final stream = remoteDataSource.sendMessage(
+        conversationId: conversationId,
+        message: message,
+      );
+      return Right(stream);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
   }
 
   @override

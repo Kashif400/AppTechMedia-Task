@@ -22,7 +22,7 @@ import '../../features/chat/data/repositories/chat_repository_impl.dart';
 import '../../features/chat/domain/repositoires/chat_repository.dart';
 import '../../features/chat/domain/usecases/fetch_conversations.dart';
 import '../../features/chat/domain/usecases/fetch_messages.dart';
-import '../../features/chat/domain/usecases/send_message.dart';
+import '../../features/chat/domain/usecases/stream_ai_response.dart';
 import '../../features/chat/presentation/bloc/chat_bloc.dart';
 
 final GetIt locator = GetIt.instance;
@@ -120,8 +120,8 @@ Future<void> initializeDependencies({String? environment}) async {
   locator.registerLazySingleton<FetchMessagesUseCase>(
     () => FetchMessagesUseCase(locator<ChatRepository>()),
   );
-  locator.registerLazySingleton<SendMessageUseCase>(
-    () => SendMessageUseCase(locator<ChatRepository>()),
+  locator.registerLazySingleton<StreamAiResponseUseCase>(
+    () => StreamAiResponseUseCase(locator<ChatRepository>()),
   );
 
   // Bloc
@@ -129,7 +129,7 @@ Future<void> initializeDependencies({String? environment}) async {
     () => ChatBloc(
       fetchConversationsUseCase: locator<FetchConversationsUseCase>(),
       fetchMessagesUseCase: locator<FetchMessagesUseCase>(),
-      sendMessageUseCase: locator<SendMessageUseCase>(),
+      streamAiResponseUseCase: locator<StreamAiResponseUseCase>(),
     ),
   );
 }
