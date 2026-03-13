@@ -69,65 +69,67 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
         return SafeArea(
           top: false,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: colorScheme.surface,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // ── Pill text field ────────────────────────────────────────
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    enabled: !isLoading,
-                    minLines: 1,
-                    maxLines: 3,
+          child: RepaintBoundary(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: colorScheme.surface,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // ── Pill text field ────────────────────────────────────────
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      enabled: !isLoading,
+                      minLines: 1,
+                      maxLines: 3,
 
-                    textInputAction: TextInputAction.newline,
-                    keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      keyboardType: TextInputType.multiline,
 
-                    style: const TextStyle(fontSize: 15),
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message…',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 10,
+                      style: const TextStyle(fontSize: 15),
+                      decoration: const InputDecoration(
+                        hintText: 'Type a message…',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 10,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                10.horizontalSpace,
+                  10.horizontalSpace,
 
-                ValueListenableBuilder<bool>(
-                  valueListenable: _hasText,
-                  builder: (context, hasText, _) => GestureDetector(
-                    key: const ValueKey('send'),
-                    onTap: hasText ? () => _send(context) : null,
-                    child: Container(
-                      width: 50.w,
-                      height: 50.h,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 14.w,
-                        vertical: 14.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: hasText
-                            ? colorScheme.primary
-                            : colorScheme.primary.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: SvgPicture.asset(
-                        Assets.icons.send.path,
-                        width: 15.w,
-                        height: 15.h,
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _hasText,
+                    builder: (context, hasText, _) => GestureDetector(
+                      key: const ValueKey('send'),
+                      onTap: hasText ? () => _send(context) : null,
+                      child: Container(
+                        width: 50.w,
+                        height: 50.h,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 14.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: hasText
+                              ? colorScheme.primary
+                              : colorScheme.primary.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: SvgPicture.asset(
+                          Assets.icons.send.path,
+                          width: 15.w,
+                          height: 15.h,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

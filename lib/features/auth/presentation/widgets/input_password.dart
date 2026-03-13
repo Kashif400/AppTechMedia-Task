@@ -48,6 +48,8 @@ class _InputPasswordState extends State<InputPassword> {
                 5.verticalSpace,
                 TextFormField(
                   obscureText: obscure,
+
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     hintText: 'Enter your password',
                     prefixIcon: Icon(
@@ -75,6 +77,9 @@ class _InputPasswordState extends State<InputPassword> {
                       return 'Password must be at least 6 characters';
                     }
                     return null;
+                  },
+                  onFieldSubmitted: (value) {
+                    context.read<LoginBloc>().add(SignInRequested());
                   },
 
                   onTapUpOutside: (event) => FocusScope.of(context).unfocus(),
