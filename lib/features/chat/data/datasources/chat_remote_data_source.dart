@@ -83,8 +83,9 @@ class ChatRemoteDataSourceImp implements ChatRemoteDataSource {
           if (line.isEmpty) continue;
 
           final parsed = _parseSseLine(line);
-          if (parsed.conversationId != null)
+          if (parsed.conversationId != null) {
             resolvedConversationId = parsed.conversationId;
+          }
           if (parsed.messageId != null) resolvedMessageId = parsed.messageId;
           if (parsed.content != null && parsed.content!.isNotEmpty) {
             yield ChatChunk(parsed.content!);
@@ -99,8 +100,9 @@ class ChatRemoteDataSourceImp implements ChatRemoteDataSource {
       final remaining = buffer.toString().trim();
       if (remaining.isNotEmpty) {
         final parsed = _parseSseLine(remaining);
-        if (parsed.conversationId != null)
+        if (parsed.conversationId != null) {
           resolvedConversationId = parsed.conversationId;
+        }
         if (parsed.messageId != null) resolvedMessageId = parsed.messageId;
         if (parsed.content != null && parsed.content!.isNotEmpty) {
           yield ChatChunk(parsed.content!);

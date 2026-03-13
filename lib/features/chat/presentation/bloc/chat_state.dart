@@ -1,8 +1,5 @@
 part of 'chat_bloc.dart';
 
-// Sentinel used to distinguish "not provided" from "explicitly null" in copyWith.
-const Object _undefined = Object();
-
 class ChatState extends Equatable {
   final List<Conversation> conversations;
   final Status conversationsStatus;
@@ -42,10 +39,9 @@ class ChatState extends Equatable {
     Status? messagesStatus,
     bool? hasMoreMessages,
     int? messagesPage,
-    // Use _undefined sentinel so null can be passed explicitly to clear the field.
-    Object? selectedConversationId = _undefined,
+    String? selectedConversationId = '',
     PostApiStatus? sendMessageStatus,
-    Object? errorMessage = _undefined,
+    String? errorMessage = "",
   }) {
     return ChatState(
       conversations: conversations ?? this.conversations,
@@ -56,13 +52,10 @@ class ChatState extends Equatable {
       messagesStatus: messagesStatus ?? this.messagesStatus,
       hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
       messagesPage: messagesPage ?? this.messagesPage,
-      selectedConversationId: identical(selectedConversationId, _undefined)
-          ? this.selectedConversationId
-          : selectedConversationId as String?,
+      selectedConversationId:
+          selectedConversationId ?? this.selectedConversationId,
       sendMessageStatus: sendMessageStatus ?? this.sendMessageStatus,
-      errorMessage: identical(errorMessage, _undefined)
-          ? this.errorMessage
-          : errorMessage as String?,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
